@@ -165,6 +165,41 @@ void print_set(set<string> &terminals, int flag){
 }
 
 /**
+  Prints all firsts and follows for every nonterminal in the form
+  goal => FIRST = { (, a, b}, FOLLOW = {$}
+  @param nonterminals: Set with all string get_nonterminals
+  @param firsts: Map with production's header a string keys and
+  production's firsts as a set of string values
+  @param follows: Map with production's header as string keys and
+  production's follows as a set of string values
+*/
+void print_firsts_follows(set<string> &nonterminals, map<string, set<string>> &firsts, map<string, set<string>> &follows){
+  set<string> :: iterator it1, it2, it3;
+  int i, j;
+  for(it1 = nonterminals.begin(); it1 != nonterminals.end(); ++it1, i++){
+    i=0;
+    j=0;
+    string res = "", res2 = "";
+    auto itr1 = firsts.find(*it1);
+
+    if(itr1 != firsts.end()){
+      set<string> aux = itr1->second;
+      for(it2 = aux.begin(); it2 != aux.end(); ++it2, i++){
+        i==aux.size()-1 ? res+=*it2 : res+=*it2+", ";
+      }
+
+      auto itr2 = follows.find(*it1);
+      if(itr2 != follows.end()){
+        set<string> aux2 = itr2->second;
+        for(it3 = aux2.begin(); it3 != aux2.end(); ++it3, j++){
+          j==aux2.size()-1 ? res2+=*it3 : res2+=*it3+", ";
+        }
+      }
+    } cout << * it1 << " => " << "FIRST" << " = " << "{" << res << "}, " << "FOLLOW" << "{" << res2 << "}" << endl;
+  }
+}
+
+/**
   Prints productions map items in the form
   A -> ( A ) a
   B -> b ' '
@@ -219,6 +254,7 @@ int main(){
   cout << endl;
   print_set(nonterminals, 1);
   cout << endl;
+  print_firsts_follows(nonterminals, firsts, follows);
 
   return 0;
 }
