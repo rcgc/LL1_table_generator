@@ -53,78 +53,6 @@ string replace_spaces_with_pipes(string str){
 }
 
 /**
-  Gets all values from productions map.
-  After that, it will check tokens that are not productions map key and put them
-  into terminals set.
-  @param productions: Map with production's headers as astring keys and
-  production's bodies as a list of string values
-  @param terminals: EMpty set that will be filled with all string terminals
-*/
-void get_terminals(map<string, list<string>> &productions, set<string> &terminals){
-  list<string> bodies;
-  string sub_string;
-
-  for(auto itr1 = productions.begin(); itr1 != productions.end(); ++itr1){
-    bodies = itr1->second;
-    while(!bodies.empty()){
-      string body = bodies.front();
-      body = replace_spaces_with_pipes(body);
-      for(int i=0, j=0; i<=body.length(); i++){
-        if(body[i]=='|' || body[i]=='\0'){
-          sub_string = body.substr(j, i-j);
-          j=i+1;
-          //is not a map key nor epsilon nor null
-          if( productions.find(sub_string) == productions.end() && !isEpsilon(sub_string) && sub_string[0]!='\0' ){
-            terminals.insert(sub_string);
-          }
-        }
-      } bodies.pop_front();
-    }
-  }
-}
-
-/**
-  Gets all keys from productions map and adds them to terminals set.
-  @param productions: Map with production's headers as string keys and
-  production's bodies as a list of string values
-  @param nonterminals: Empty set that will be filled with all string
-  nonterminals
-*/
-void get_nonterminals(map<string, list<string>> &productions, set<string> &nonterminals){
-  for(auto itr1 = productions.begin(); itr1 != productions.end(); ++itr1){
-    nonterminals.insert(itr1->first);
-  }
-}
-
-/**
-  Prints all items into terminals set in the form
-  Terminales: a, b, c
-  @param terminals: Set with all string terminals
-*/
-void print_terminals(set<string> &terminals){
-  set<string> :: iterator it;
-  int i=0;
-  cout << "Terminales: ";
-  for(it = terminals.begin(); it != terminals.end(); ++it, i++){
-    i==terminals.size()-1 ? cout << *it : cout << *it << ", ";
-  }
-}
-
-/**
-  Prints all items into nonterminals set in the form
-  No terminales: A, B, C
-  @param nonterminals: Set with all string nonterminals
-*/
-void print_nonterminals(set<string> &nonterminals){
-  set<string> :: iterator it;
-  int i=0;
-  cout << "No terminales: ";
-  for(it = nonterminals.begin(); it != nonterminals.end(); ++it, i++){
-    i==nonterminals.size()-1 ? cout << *it : cout << *it << ", ";
-  }
-}
-
-/**
   Gets and returns production's header only.
   @param production: String formatted in the way
   header -> body
@@ -173,6 +101,67 @@ void separate_header_body(map<string, list<string>> &productions, char productio
     }else{ // Header already exists
       itr->second.push_back(body);
     }
+}
+
+/**
+  Gets all values from productions map.
+  After that, it will check tokens that are not productions map key and put them
+  into terminals set.
+  @param productions: Map with production's headers as astring keys and
+  production's bodies as a list of string values
+  @param terminals: EMpty set that will be filled with all string terminals
+*/
+void get_terminals(map<string, list<string>> &productions, set<string> &terminals){
+  list<string> bodies;
+  string sub_string;
+
+  for(auto itr1 = productions.begin(); itr1 != productions.end(); ++itr1){
+    bodies = itr1->second;
+    while(!bodies.empty()){
+      string body = bodies.front();
+      body = replace_spaces_with_pipes(body);
+      for(int i=0, j=0; i<=body.length(); i++){
+        if(body[i]=='|' || body[i]=='\0'){
+          sub_string = body.substr(j, i-j);
+          j=i+1;
+          //is not a map key nor epsilon nor null
+          if( productions.find(sub_string) == productions.end() && !isEpsilon(sub_string) && sub_string[0]!='\0' ){
+            terminals.insert(sub_string);
+          }
+        }
+      } bodies.pop_front();
+    }
+  }
+}
+
+/**
+  Gets all keys from productions map and adds them to terminals set.
+  @param productions: Map with production's headers as string keys and
+  production's bodies as a list of string values
+  @param nonterminals: Empty set that will be filled with all string
+  nonterminals
+*/
+void get_nonterminals(map<string, list<string>> &productions, set<string> &nonterminals){
+  for(auto itr1 = productions.begin(); itr1 != productions.end(); ++itr1){
+    nonterminals.insert(itr1->first);
+  }
+}
+
+/**
+  Prints all items into set in the form
+  Terminales: a, b, c
+  or
+  No terminales: A, B, C
+  @param terminals: Set with all string terminals or nonterminals
+  @param flag: Integer value which could be 0 or 1
+*/
+void print_set(set<string> &terminals, int flag){
+  set<string> :: iterator it;
+  int i=0;
+  flag==0 ? cout << "Terminales: " : cout << "No terminales: ";
+  for(it = terminals.begin(); it != terminals.end(); ++it, i++){
+    i==terminals.size()-1 ? cout << *it : cout << *it << ", ";
+  }
 }
 
 /**
@@ -226,9 +215,9 @@ int main(){
   get_nonterminals(productions, nonterminals);
   cout << endl;
 
-  print_terminals(terminals);
+  print_set(terminals, 0);
   cout << endl;
-  print_nonterminals(nonterminals);
+  print_set(nonterminals, 1);
   cout << endl;
 
   return 0;
