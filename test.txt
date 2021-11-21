@@ -1,4 +1,4 @@
-5
+5 0
 X -> Y z
 X -> a
 Y -> b Z
@@ -12,7 +12,7 @@ LL(1)? Yes
 
 ------------------------------------------
 
-6
+6 0
 E -> E + T
 E -> T
 T -> T * F
@@ -27,7 +27,7 @@ LL(1)? No
 
 ------------------------------------------
 
-8
+8 0
 E -> T EPrime
 EPrime -> + T EPrime
 EPrime -> ' '
@@ -45,7 +45,7 @@ F => FIRST = {id, (}, FOLLOW = {*, +, $, )}
 LL(1)? Yes
 ------------------------------------------
 
-6
+6 0
 A -> a A
 A -> b A
 A -> a B
@@ -60,7 +60,7 @@ D => FIRST = {' '}, FOLLOW = {$}
 LL(1)? No
 -------------------------------------------
 
-8
+8 0
 bexpr -> bexpr or bterm
 bexpr -> bterm
 bterm -> bterm and bfactor
@@ -76,7 +76,7 @@ bfactor => FIRST = {not, (, true, false}, FOLLOW = {$, or, ), and}
 LL(1)? No
 --------------------------------------------
 
-7
+7 0
 S -> A a
 S -> b
 A -> b d APrime
@@ -91,20 +91,26 @@ APrime => FIRST = {c, a, ' '}, FOLLOW = {a}
 LL(1)? Yes
 --------------------------------------------
 
-5
+5 4
 goal -> A
 A -> ( A )
 A -> two
 two -> a
 two -> b
+( ( a ) )
+( a ) )
+( ( ( ( ( b ) ) ) ) )
+( ( ( ( ( a b ) ) ) ) )
 
-goal => FIRST = {(, a, b}, FOLLOW = {$}
-A => FIRST = {(, a, b}, FOLLOW = {$, )}
-two => FIRST = {a, b}, FOLLOW = {$, )}
+Input #1: Yes
+Input #2: No
+Input #3: Yes
+Input #4: No
+
 LL(1)? Yes
 --------------------------------------------
 
-6
+6 0
 S -> A a
 A -> B D
 B -> b
@@ -119,7 +125,7 @@ D => FIRST = {d, ' '}, FOLLOW = {a}
 LL(1)? Yes
 -------------------------------------------
 
-10
+10 0
 E -> T EPrime
 EPrime -> + T EPrime
 EPrime -> - T EPrime

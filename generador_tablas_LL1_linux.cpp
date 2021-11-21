@@ -177,7 +177,7 @@ bool contains_first(set<string> &set1, string str){
   into terminals set.
   @param productions: Map with production's headers as astring keys and
   production's bodies as a list of string values
-  @param terminals: EMpty set that will be filled with all string terminals
+  @param terminals: Empty set that will be filled with all string terminals
 */
 void get_terminals(map<string, list<string>> &productions, set<string> &terminals){
   list<string> bodies;
@@ -884,6 +884,164 @@ bool isLL1(map<string, list<string>> &productions, map<string, set<string>> &fol
 }
 
 /**
+  Initializes LL1 Analysis Table headers and left columns
+  @param terminals: Set with all string terminals
+  @param nonterminals: Set with all string nonterminals
+  @param LL1_table: Map with nonterminals symbols as key and terminal symbols
+  as the key of the second map and a string as the value.
+  Formatted in the following way:
+  header -> body
+*/
+void initialize_LL1_table(set<string> &terminals, set<string> &nonterminals, map<string, map<string, string>> &LL1_table){
+  set<string> aux_set = terminals;
+  aux_set.insert("$");
+  set<string> :: iterator it1, it2;
+
+  for(it1 = nonterminals.begin(); it1 != nonterminals.end(); ++it1){
+    for(it2 = aux_set.begin(); it2 != aux_set.end(); ++it2){
+      auto itr = LL1_table.find(*it1);
+      if(itr == LL1_table.end()){
+        map<string, string> aux_map;
+        aux_map.insert({*it2, " "});
+        LL1_table.insert({*it1, aux_map});
+      }else{
+        itr->second.insert({*it2, " "});
+      }
+    }
+  }
+}
+
+/*
+  Generate LL1 Analysis Table in order to check if provided strings
+  will be accepted or not.
+  @param productions: Map with productio's headers as string keys and
+  production's bodies as a list of string values
+  @param firsts: Map with production's header a string keys and
+  production's firsts as a set of string values
+  @param LL1_table: Map with nonterminals symbols as key and terminal symbols
+  as the key of the second map and a string as the value.
+  Formatted in the following way:
+  header -> body
+**/
+void generate_LL1_table(map<string, list<string>> &productions, map<string, set<string>> &firsts, map<string, map<string, string>> &LL1_table){
+
+}
+
+/**
+  Gets the production for every temrinal in the LL1_table.
+  @param LL1_table: Map with nonterminals symbols as key and terminal symbols
+  as the key of the second map and a string as the value.
+  Formatted in the following way:
+  header -> body
+  @param String terminal which productions will be gotten
+  @return list with all terminal productions
+*/
+list<string> get_cells(map<string, map<string, string>> &LL1_table, string nonterminal){
+  list<string> aux_list;
+  map<string, string> aux_map;
+
+  auto itr = LL1_table.find(nonterminal);
+  aux_map = itr->second;
+
+  for(auto itr2 = aux_map.begin(); itr2 != aux_map.end(); ++itr2){
+    aux_list.push_back(itr2->first);
+  }
+  return aux_list;
+}
+
+/**
+  Verifies if a given string is accepted by the LL1 table.
+  @param @param LL1_table: Map with nonterminals symbols as key and terminal symbols
+  as the key of the second map and a string as the value.
+  Formatted in the following way:
+  header -> body
+  @param str: String to be evaluated
+  @return boolean. True if accepted, false otherwise
+*/
+bool check_string(map<string, map<string, string>> &LL1_table, string str){
+  return true;
+}
+
+/**
+  Generates html file report to display LL(1) Analysis Table and
+  if given strings are accepted or not.
+  @param LL1_table: Map with nonterminals symbols as key and terminal symbols
+  as the key of the second map and a string as the value.
+  Formatted in the following way:
+  header -> body
+  @param terminals: Set of Strings with all terminals symbols
+  @param strings_input: list of Strings to be evaluated
+*/
+void generate_html(map<string, map<string, string>> &LL1_table, set<string> &terminals, list<string> &strings_input){
+  set<string> aux_set = terminals;
+  aux_set.insert("$");
+  int i = 1;
+
+  ofstream myfile;
+  myfile.open("report.html");
+    myfile << "<!DOCTYPE html>";
+    myfile << "<html><head>";
+    myfile << "<title>Report</title></head>";
+    myfile << "<body style='background-color: LightGray'>";
+      myfile << "<header><div style='text-align: center'>";
+      myfile << "<h1>LL1(1) Analysis Table Report</h1>";
+      myfile << "</header>";
+
+      // table content
+      myfile << "<table border='1' align='center'>";
+        myfile << "<thead>";
+        myfile << "<th>Non Terminal / Terminal</th>";
+          set<string> :: iterator it;
+          for(it = aux_set.begin(); it != aux_set.end(); ++it){
+            myfile << "<th align='center'> " << *it << " </th>";
+          }
+        myfile << "</thead>";
+
+        myfile << "<tbody>";
+          for(auto itr = LL1_table.begin(); itr != LL1_table.end(); ++itr){
+            myfile << "<tr>";
+              myfile << "<th align='center'> " << itr->first << "</th>";
+              list<string> aux_list = get_cells(LL1_table, itr->first);
+
+              while(!aux_list.empty()){
+                myfile << "<td align='center'>" << aux_list.front() << "</td>";
+                aux_list.pop_front();
+              }
+            myfile << "</tr>";
+          }
+        myfile << "</tbody>";
+
+        myfile << "<tfoot>";
+        myfile << "</tfoot>";
+      myfile << "</table>";
+      // end of table content
+
+      // strings checking section
+      myfile << "<div style='text-align:center'>";
+      while(!strings_input.empty()){
+        myfile << "<p>";
+        myfile << "<b>Input #" << i << ": </b>";
+        check_string(LL1_table, strings_input.front()) ? myfile << "Yes" : myfile << "No";
+        myfile << "</p>";
+        i++;
+        strings_input.pop_front();
+      }
+      myfile << "</div>";
+      // end of strings checking section
+
+      // footer section
+      myfile << "<hr><footer style='margin: 0 10%'>";
+      myfile << "<p>Course: Compilers Design - TC3048.1<br>";
+      myfile << "Author: Roberto Carlos<br>";
+      myfile << "Email: <a href='mailto:roberto140298@gmail.com'>roberto140298@gmail.com</a></p>";
+      myfile << "<p>November 21<sup>st</sup>, 2021</p>";
+      myfile << "</footer>";
+      // end of footer section
+    myfile << "</body></html>";
+  myfile.close();
+}
+
+/**
   Prints productions map items in the form
   A -> ( A ) a
   B -> b ' '
@@ -915,7 +1073,7 @@ int main(){
   set<string> terminals, nonterminals;
   list<string> strings_input;
 
-  cin >> n;// >> m;
+  cin >> n >> m;
   cin.ignore(); // Cleans end of line from last cin
 
   for(int i=0; i<n; i++){
@@ -926,6 +1084,11 @@ int main(){
       initial_production = production;
       initial_header = get_header(initial_production);
     }
+  }
+
+  for(int i=0; i<m; i++){
+    cin.getline(str, MAX_STRING_LEN);
+    strings_input.push_back(str);
   }
 
   // cout << endl;
@@ -940,9 +1103,18 @@ int main(){
   // cout << endl;
   // print_set(nonterminals, 1);
   // cout << endl;
-  print_firsts_follows(nonterminals, firsts, follows);
+  // print_firsts_follows(nonterminals, firsts, follows);
 
-  isLL1(productions, follows) ? cout << "LL(1)? Yes" << endl : cout << "LL(1)? No" << endl;
+  if( isLL1(productions, follows) ){
+    cout << "LL(1)? Yes" << endl;
+    initialize_LL1_table(terminals, nonterminals, LL1_table);
+    generate_LL1_table(productions, firsts, LL1_table);
+    generate_html(LL1_table, terminals, strings_input);
+    cout << "Generated: report.html" << endl;
+  }else{
+    cout << "LL(1)? No" << endl;
+    cout << "Warning: No html file will be generated" << endl;
+  }
 
   return 0;
 }
