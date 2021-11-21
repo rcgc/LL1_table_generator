@@ -104,6 +104,57 @@ void separate_header_body(map<string, list<string>> &productions, char productio
 }
 
 /**
+  Receives two sets and merges them into a new one.
+  @param set1: Set of Strings
+  @param set2: Set of Strings
+  @return new Set
+*/
+set<string> merge_sets(set<string> &set1, set<string> &set2){
+  set<string> smallest, largest;
+  set<string> :: iterator it;
+
+  if(set1.size() >= set2.size()){
+    smallest = set2;
+    largest = set1;
+  }else{
+    smallest = set1;
+    largest = set2;
+  }
+  for(it = smallest.begin(); it != smallest.end(); ++it){
+    largest.insert(*it);
+  }
+  return largest;
+}
+
+/**
+  Checks if set contains epsilon.
+  @param set1: Set of Strings
+  @return boolean Ture if contains epsilon, False otherwise
+*/
+bool contains_epsilon(set<string> &set1){
+  set<string> :: iterator it;
+  for(it = set1.begin(); it != set1.end(); ++it){
+      if(isEpsilon(*it)) return true;
+  }
+  return false;
+}
+
+/**
+  Removes epsilon from Set.
+  @param set1: Set of Strings
+*/
+void remove_epsilon(set<string> &set1){
+  set<string> :: iterator it;
+  for(it = set1.begin(); it != set1.end(); ++it){
+    if(isEpsilon(*it)){
+      set1.erase(it);
+      return;
+    }
+  }
+  return;
+}
+
+/**
   Gets all values from productions map.
   After that, it will check tokens that are not productions map key and put them
   into terminals set.
@@ -162,6 +213,190 @@ void print_set(set<string> &terminals, int flag){
   for(it = terminals.begin(); it != terminals.end(); ++it, i++){
     i==terminals.size()-1 ? cout << *it : cout << *it << ", ";
   }
+}
+
+/**
+  Gets all terminals at the beginning of every production body.
+  @param productions: Map with production's headers as string keys
+  and production's bodies as a list of string values
+  @param body: String production body
+  @return String first at the very beginning of body
+*/
+string get_direct_firsts(map<string, list<string>> &productions, string body){
+  string sub_string, first;
+  for(int i=0, j=0; i <= body.length(); i++){
+    if(body[i]=='|' || body[i]=='\0'){
+      sub_string = body.substr(j, i-j);
+      j=i+1;
+
+      if( productions.find(sub_string) == productions.end() && !isEpsilon(sub_string)){
+        return sub_string;
+      } else if(isEpsilon(body)){
+        return sub_string;
+      } break;
+    }
+  }
+  first = " ";
+  return first;
+}
+
+/**
+  Gets set of derived firsts when nonterminal at the beginning of production body.
+  @param firsts: Empty map that will be filled with all productions
+  @param key : String production key
+  @param body: String production body
+  @return Set of derived firsts
+*/
+set<string> get_derived_firsts(map<string, set<string>> &firsts, string key, string body){
+  set<string> aux_set;
+  string sub_string;
+
+  for(int i=0, j=0; i<=body.length(); i++){
+    if(body[i]=='|' || body[i]=='\0'){
+      sub_string = body.substr(j, i-j);
+      j=i+1;
+      auto itr = firsts.find(sub_string);
+      if( itr != firsts.end() && sub_string != key){
+        aux_set = itr->second;
+        break;
+      }
+      break;
+    }
+  }
+  return aux_set;
+}
+
+/**
+*/
+set<string> get_firsts_when_epsilon(map<string, set<string>> &firsts, string key, string body){
+  bool flag = false;
+  set<string> set1;
+  string sub_string;
+
+  for(int i=0, j=0; i<=body.length(); i++){
+    if(body[i]=='|' || body[i]=='\0'){
+      sub_string = body.substr(j, i-j);
+      j=i+1;
+      auto itr = firsts.find(sub_string);
+      if(itr != firsts.end() && sub_string != key){
+        set<string> set2 = get_derived_firsts(firsts, key, sub_string);
+
+        if(contains_epsilon(set2)){
+            flag = true;
+            set1.empty() ? set1 = set2 : set1 = merge_sets(set1, set2);
+            continue;
+        }else{
+          break;
+        }
+
+      }else if(sub_string == key){
+        break;
+      }else if(itr == firsts.end()){
+        set1.insert(sub_string);
+        flag = false;
+        break;
+      }
+    }
+  }
+
+  if(contains_epsilon(set1) && flag==false){
+    remove_epsilon(set1);
+  }
+  return set1;
+}
+
+/**
+  Gets all firsts for every nonterminal in production map, and
+  will put them into firsts maps.
+  @param productions: Map with production's headers as string keys
+  and production's bodies as a list of string values
+  @param firsts: Empty map that will be filled with all productions
+  firsts into a new list for every nonterminal
+*/
+void get_firsts(map<string, list<string>> &productions, map<string, set<string>> &firsts){
+  // Gets direct firsts
+  for(auto itr = productions.begin(); itr != productions.end(); ++itr){
+    string f, key = itr->first;
+    list<string> bodies = itr->second;
+    while(!bodies.empty()){
+      string body = bodies.front();
+      body = replace_spaces_with_pipes(body);
+      if(get_direct_firsts(productions, body) != " "){
+        f = get_direct_firsts(productions, body);
+        auto itr2 = firsts.find(key);
+        if(itr2 == firsts.end()){
+          set<string> aux_set;
+          aux_set.insert(f);
+          firsts.insert({key, aux_set});
+        }else{
+          itr2->second.insert(f);
+        }
+      }
+      bodies.pop_front();
+    }
+  }
+
+  // Gets derived firsts
+  for(int k=0; k<2; k++){
+    for(auto itr = productions.begin(); itr != productions.end(); ++itr){
+      set<string> aux_set;
+      string key = itr->first;
+      list<string> bodies = itr->second;
+      while(!bodies.empty()){
+        string aux_body = bodies.front(), body = bodies.front();
+        body = replace_spaces_with_pipes(body);
+        aux_set = get_derived_firsts(firsts, key, body);
+
+        if(!aux_set.empty()){
+          auto itr2 = productions.find(aux_body);
+          if(contains_epsilon(aux_set) && itr2 == productions.end()){
+            remove_epsilon(aux_set);
+          }
+          auto itr3 = firsts.find(key);
+          set<string> aux_set2;
+          if(!itr3->second.empty()){
+            aux_set2 = merge_sets(itr3->second, aux_set);
+          }else{
+            aux_set2 = aux_set;
+          }
+          if(itr3 != firsts.end()){
+            itr3->second = aux_set2;
+          }else{
+            firsts.insert({key, aux_set2});
+          }
+        }
+        bodies.pop_front();
+      }
+    }
+  }
+  // Gets firsts when epsilon
+  for(auto itr = productions.begin(); itr != productions.end(); ++itr){
+    set<string> aux_set;
+    string key = itr->first;
+    list<string> bodies = itr->second;
+    while(!bodies.empty()){
+      string body = bodies.front();
+      body = replace_spaces_with_pipes(body);
+      aux_set = get_firsts_when_epsilon(firsts, key, body);
+
+      if(!aux_set.empty()){
+        auto itr2 = firsts.find(key);
+        set<string> aux_set2;
+        if(!itr2->second.empty()){
+          aux_set2 = merge_sets(itr2->second, aux_set);
+        }else{
+          aux_set2 = aux_set;
+        }
+        if(itr2 != firsts.end()){
+          itr2->second = aux_set2;
+        }else{
+          firsts.insert({key, aux_set2});
+        }
+      }
+      bodies.pop_front();
+    }
+  }
+
 }
 
 /**
@@ -244,16 +479,17 @@ int main(){
     }
   }
 
-  cout << endl;
-  print_map(productions);
+  // cout << endl;
+  // print_map(productions);
   get_terminals(productions, terminals);
   get_nonterminals(productions, nonterminals);
+  get_firsts(productions, firsts);
   cout << endl;
 
-  print_set(terminals, 0);
-  cout << endl;
-  print_set(nonterminals, 1);
-  cout << endl;
+  // print_set(terminals, 0);
+  // cout << endl;
+  // print_set(nonterminals, 1);
+  // cout << endl;
   print_firsts_follows(nonterminals, firsts, follows);
 
   return 0;
