@@ -405,6 +405,101 @@ void get_firsts(map<string, list<string>> &productions, map<string, set<string>>
 }
 
 /**
+*/
+set<string> get_follows_when_epsilon(string key, map<string, list<string>> &productions, map<string, set<string>> &firsts, map<string, set<string>> &follows){
+  set<string> aux_set;
+
+    for(auto itr = productions.begin(); itr != productions.end(); ++itr){
+      list<string> bodies = itr->second;
+
+      while(!bodies.empty()){
+        bool flag = false;
+        string body = bodies.front();
+        body = replace_spaces_with_pipes(body);
+
+        for(int i=0, j=0; i<=body.length(); i++){
+          if(body[i]=='|' || body[i]=='\0'){
+            string sub_string = body.substr(j, i-j);
+            j=i+1;
+
+            // If key is in production body
+            if(sub_string == key && body[i]!='\0'){
+              for(int k=i+1, m=j; k<=body.length(); k++){
+                if(body[k]=='|' || body[k]=='\0'){
+                  string sub_aux = body.substr(m, k-m);
+                  m=k+1;
+                  // If is nonterminal
+                  if(productions.find(sub_aux) != productions.end()){
+                    auto itr2 = firsts.find(sub_aux);
+                    set<string> aux = itr2->second;
+                    if(contains_epsilon(aux)){
+                      flag = true;
+                    }else{
+                      flag = false;
+                      break;
+                    }
+                  }else{
+                    flag = false;
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        }
+        bodies.pop_front();
+        if(flag==true){
+          auto itr3 = follows.find(itr->first);
+          if(itr3!=follows.end()){
+            aux_set = itr3->second;
+          }
+        }
+      }
+    }
+
+  return aux_set;
+}
+
+/**
+  Gets follows for those nonterminals without symbols at its right side
+  @param key: String nonterminal key which follows will be gotten
+  @param productions: Map with productio's headers as string keys and
+  production's bodies as a list of string values
+  @follows: Map filled with most of the productions follows
+  @return Set of Strings filled with all follows by the given key
+*/
+set<string> get_follows_end_bodies(string key, map<string, list<string>> &productions, map<string, set<string>> &follows){
+  set<string> aux_set;
+
+  for(auto itr = productions.rbegin(); itr != productions.rend(); ++itr){
+    list<string> bodies = itr->second;
+
+    while(!bodies.empty()){
+      string body = bodies.front();
+      body = replace_spaces_with_pipes(body);
+
+      for(int i = body.length(), j=body.length(); i>=0; i--){
+        if(body[i]=='|' || i==0){
+          string sub_string;
+          i==0 ? sub_string = body.substr(i,j) : sub_string = body.substr(i+1, j);
+          j=i-1;
+
+          if(sub_string == key && itr->first != key){
+            auto itr2 = follows.find(itr->first);
+            if(itr2 != follows.end()){
+              aux_set.empty() ? aux_set = itr2->second : aux_set = merge_sets(aux_set, itr2->second);
+            }
+          }
+          break;
+        }
+      }
+      bodies.pop_front();
+    }
+  }
+  return aux_set;
+}
+
+/**
   Gets follows at the right side of every nonterminal
   @param key: String nonterminal key which follows will be gotten
   @param productions: Map with productio's headers as string keys and
@@ -417,7 +512,49 @@ void get_firsts(map<string, list<string>> &productions, map<string, set<string>>
 */
 set<string> get_follows_into_bodies(string key, map<string, list<string>> &productions, map<string, set<string>> &firsts, string initial_header){
   set<string> follows;
+  for(auto itr = productions.begin(); itr != productions.end(); ++itr){
+    list<string> bodies = itr->second;
 
+    while(!bodies.empty()){
+      string sub_string, body = bodies.front();
+      body = replace_spaces_with_pipes(body);
+
+      if(key == initial_header){
+        follows.insert("$");
+      }
+      for(int i=0, j=0; i<= body.length(); i++){
+        if(body[i]=='|' || body[i]=='\0'){
+          sub_string = body.substr(j, i-j);
+          j=i+1;
+
+          //If key-nonterminal is in production body
+          if(sub_string == key && body[i]!='\0'){
+            for(int k=i+1, m=j; k<=body.length(); k++){
+              if(body[k]=='|' || body[k]=='\0'){
+                string sub_aux = body.substr(m, k-m);
+                m = k+1;
+                // If is terminal
+                if(productions.find(sub_aux)==productions.end()){
+                  follows.insert(sub_aux);
+                }else{ //If is nonterminal
+                  auto itr2 = firsts.find(sub_aux);
+                  set<string> aux = itr2->second;
+                  if(contains_epsilon(aux) && aux.size()<=1){
+                    continue;
+                  }else if(contains_epsilon(aux)&& aux.size()>1){
+                    remove_epsilon(aux);
+                  }
+                  follows.empty() ? follows = aux : follows = merge_sets(follows, aux);
+                }
+                break;
+              }
+            }
+          }
+        }
+      }
+      bodies.pop_front();
+    }
+  }
   return follows;
 }
 
@@ -433,6 +570,7 @@ set<string> get_follows_into_bodies(string key, map<string, list<string>> &produ
   the header of the very first production
 */
 void get_follows(map<string, list<string>> &productions, map<string, set<string>> &firsts, map<string, set<string>> &follows, string initial_header){
+  // Getting follows for the very first time
   for(auto itr = productions.begin(); itr != productions.end(); ++itr){
     set<string> aux;
     string key = itr->first;
@@ -440,9 +578,38 @@ void get_follows(map<string, list<string>> &productions, map<string, set<string>
     aux = get_follows_into_bodies(key, productions, firsts, initial_header);
 
     if(aux.empty()){
-      //aux = get_follows_end_bodies(key, productions, follows);
+      aux = get_follows_end_bodies(key, productions, follows);
     }
     follows.insert({key, aux});
+  }
+  // Getting remaining follows
+  for(int k=0; k<2; k++){
+    for(auto itr = follows.begin(); itr!= follows.end(); ++itr){
+      set<string> aux;
+      string key = itr->first;
+
+      // end bodies
+      if(itr->second.empty()){
+        aux = get_follows_end_bodies(key, productions, follows);
+        auto itr2 = follows.find(key);
+        itr2->second = aux;
+      }else{
+        aux = get_follows_end_bodies(key, productions, follows);
+        auto itr2 = follows.find(key);
+        itr2->second = merge_sets(itr2->second, aux);
+      }
+
+      //when epsilon
+      if(itr->second.empty()){
+        aux = get_follows_when_epsilon(key, productions, firsts, follows);
+        auto itr2 = follows.find(key);
+        itr2->second = aux;
+      }else{
+        aux = get_follows_when_epsilon(key, productions, firsts, follows);
+        auto itr2 = follows.find(key);
+        itr2->second = merge_sets(itr2->second, aux);
+      }
+    }
   }
 }
 
