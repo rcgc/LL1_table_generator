@@ -405,9 +405,45 @@ void get_firsts(map<string, list<string>> &productions, map<string, set<string>>
 }
 
 /**
+  Gets follows at the right side of every nonterminal
+  @param key: String nonterminal key which follows will be gotten
+  @param productions: Map with productio's headers as string keys and
+  production's bodies as a list of string values
+  @param firsts: Map with production's header a string keys and
+  production's firsts as a set of string values
+  @param initial_header: String nonterminal key which corresponds to
+  the header of the very first production
+  @return Set of Strings fillwd with all gotten follows by the given key
 */
-void get_follows(){
-  
+set<string> get_follows_into_bodies(string key, map<string, list<string>> &productions, map<string, set<string>> &firsts, string initial_header){
+  set<string> follows;
+
+  return follows;
+}
+
+/**
+  Gets all follows for every nonterminal in production map.
+  @param productions: Map with productio's headers as string keys and
+  production's bodies as a list of string values
+  @param firsts: Map with production's header a string keys and
+  production's firsts as a set of string values
+  @param follows: Map with production's header as string keys and
+  production's follows as a set of string values
+  @param initial_header: String nonterminal key which corresponds to
+  the header of the very first production
+*/
+void get_follows(map<string, list<string>> &productions, map<string, set<string>> &firsts, map<string, set<string>> &follows, string initial_header){
+  for(auto itr = productions.begin(); itr != productions.end(); ++itr){
+    set<string> aux;
+    string key = itr->first;
+
+    aux = get_follows_into_bodies(key, productions, firsts, initial_header);
+
+    if(aux.empty()){
+      //aux = get_follows_end_bodies(key, productions, follows);
+    }
+    follows.insert({key, aux});
+  }
 }
 
 /**
@@ -495,6 +531,7 @@ int main(){
   get_terminals(productions, terminals);
   get_nonterminals(productions, nonterminals);
   get_firsts(productions, firsts);
+  get_follows(productions, firsts, follows, initial_header);
   cout << endl;
 
   // print_set(terminals, 0);
