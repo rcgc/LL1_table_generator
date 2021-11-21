@@ -42,7 +42,7 @@ EPrime => FIRST = {+, ' '}, FOLLOW = {$, )}
 T => FIRST = {id, (}, FOLLOW = {+, $, )}
 TPrime => FIRST = {*, ' '}, FOLLOW = {+, $, )}
 F => FIRST = {id, (}, FOLLOW = {*, +, $, )}
-LL(1)?
+LL(1)? Yes
 ------------------------------------------
 
 6
@@ -114,7 +114,7 @@ D -> ' '
 
 S => FIRST = {b, d, a}, FOLLOW = {$}
 A => FIRST = {b, d, ' '}, FOLLOW = {a}
-B => FIRST = {b, ' '}, FOLLOW = {d, a} <--
+B => FIRST = {b, ' '}, FOLLOW = {d, a}
 D => FIRST = {d, ' '}, FOLLOW = {a}
 LL(1)? Yes
 -------------------------------------------

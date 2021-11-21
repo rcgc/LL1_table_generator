@@ -155,6 +155,23 @@ void remove_epsilon(set<string> &set1){
 }
 
 /**
+  Checks if set contains string.
+  @param set1: Set filled with strings
+  @param str: String searched into Set
+  @return boolean. True if str is in set, false otherwise
+*/
+bool contains_first(set<string> &set1, string str){
+  set<string> :: iterator it;
+
+  for(it = set1.begin(); it != set1.end(); ++it){
+    if(*it==str){
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
   Gets all values from productions map.
   After that, it will check tokens that are not productions map key and put them
   into terminals set.
@@ -405,6 +422,14 @@ void get_firsts(map<string, list<string>> &productions, map<string, set<string>>
 }
 
 /**
+  Gets follows when there's only epsilon next to te key in production's body.
+  @param key: String nonterminal key which follows will be gotten
+  @param productions: Map with productio's headers as string keys and
+  production's bodies as a list of string values
+  @param firsts: Map with production's header a string keys and
+  production's firsts as a set of string values
+  @follows: Map filled with most of the productions follows
+  @return Set of Strings filled with all follows by the given key
 */
 set<string> get_follows_when_epsilon(string key, map<string, list<string>> &productions, map<string, set<string>> &firsts, map<string, set<string>> &follows){
   set<string> aux_set;
@@ -649,6 +674,216 @@ void print_firsts_follows(set<string> &nonterminals, map<string, set<string>> &f
 }
 
 /**
+  Checks if there's left recursion for every production.
+  @param productions: Map with productio's headers as string keys and
+  production's bodies as a list of string values
+  @return boolean True if there's left recursion, false otherwise
+*/
+bool has_left_recursion(map<string, list<string>> &productions){
+  for(auto itr = productions.begin(); itr != productions.end(); ++itr){
+    string key = itr->first;
+    list<string> bodies = itr->second;
+
+    while(!bodies.empty()){
+      string body = bodies.front();
+      body = replace_spaces_with_pipes(body);
+
+      for(int i=0, j=0; i<body.length(); i++){
+        if(body[i]=='|' || body[i]=='\0'){
+          string sub_string = body.substr(j, i-j);
+          j=i+1;
+          // If key non-terminal is in production's body
+          if(sub_string == key && body[i]!='\0'){
+            return true;
+          }else{
+            break;
+          }
+        }
+      }
+      bodies.pop_front();
+    }
+  }
+  return false;
+}
+
+/**
+  Checks if first is into key follows.
+  @param key: String which productions will be evaluated
+  @param bodies: List of productions as String to be evaluated
+  @follows: Map filled with most of the productions follows
+  @return boolean. True if first is into a follow set
+*/
+bool is_first_into_follows(string key, list<string> &bodies, map<string, set<string>> &follows){
+  auto itr = follows.find(key);
+  set<string> aux = itr->second;
+
+  while(!bodies.empty()){
+    string body = bodies.front();
+
+    // If body does no contain epsilon
+    if(body.find("' '") == string::npos){
+      for(int i=0, j=0; i<=body.length(); i++){
+        if(body[i]=='|' || body[i]=='\0'){
+          string sub_string = body.substr(j, i-j);
+          j=i+1;
+          if( contains_first(aux, sub_string) ){
+            return true;
+          }
+        }
+      }
+    }
+    bodies.pop_front();
+  }
+  return false;
+}
+
+/**
+  Checks if firsts in production1 has one common element in follow production2.
+  @param key: String which productions will be evaluated
+  @param productions: Map with productio's headers as string keys and
+  production's bodies as a list of string values
+  @follows: Map filled with most of the productions follows
+  @return boolean. False it rule3 is not satisfied, true otherwise
+*/
+bool rule3(string key, map<string, list<string>> &productions, map<string, set<string>> &follows){
+  auto itr = productions.find(key);
+  list<string> bodies = itr->second;
+
+  while(!bodies.empty()){
+    if(is_first_into_follows(key, bodies, follows)){
+      return false;
+    }
+    bodies.pop_front();
+  }
+  return true;
+}
+
+/**
+  Counts how many epsilons there are into all the productions body.
+  @param bodies: List with production bodies as strings
+  @return Integer that correspons to the numbers of epsilons into
+  all the productions body
+*/
+int count_epsilon(list<string> &bodies){
+  int counter = 0;
+
+  if(bodies.size() <= 1){
+    return counter;
+  }
+
+  while(!bodies.empty()){
+    string body = bodies.front();
+    body = replace_spaces_with_pipes(body);
+
+    for(int i=0, j=0; i<body.length(); i++){
+      if(body[i]=='|' || body[i]=='\0'){
+        string sub_string = body.substr(j, i-j);
+        j=i+1;
+        if( isEpsilon(sub_string)){
+          counter++;
+        }
+      }
+    }
+    bodies.pop_front();
+  }
+  return counter;
+}
+
+/**
+  Checks if at most one productions derives into epsilon.
+  @param productions: Map with productio's headers as string keys and
+  production's bodies as a list of string values
+  @follows: Map filled with most of the productions follows
+  @ return boolean. False if rule2 is not satisfied, true otherwise
+*/
+bool rule2(map<string, list<string>> &productions, map<string, set<string>> &follows){
+  int counter = 0;
+
+  for(auto itr = productions.begin(); itr != productions.end(); ++itr){
+    list<string> bodies = itr->second;
+    string key = itr->first;
+    counter = count_epsilon(bodies);
+
+    if(counter >= 2){
+      return false;
+    }else if(counter ==1){
+      if( !rule3(key, productions, follows) ){
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+/**
+  Iterates over a list of Strings and gets the first item for everyone.
+  @param bodies: List of String which are the bodies for a given key
+  @return boolean. False if some of them share first item, true otherwise
+*/
+bool iterate_bodies(list<string> &bodies){
+  string sub_string;
+  list<string> res;
+
+  while(!bodies.empty()){
+    string body = bodies.front();
+    body = replace_spaces_with_pipes(body);
+
+    for(int i=0, j=0; i<=body.length(); i++){
+      if(body[i]=='|' || body[i]=='\0'){
+        sub_string = body.substr(j, i-j);
+        break;
+      }
+    }
+    res.push_back(sub_string);
+    bodies.pop_front();
+  }
+
+  string target = res.front();
+  res.pop_front();
+
+  while(!res.empty()){
+    if(target == res.front()){
+      return false;
+    }
+    res.pop_front();
+  }
+  return true;
+}
+
+/**
+  Checks if productions with same header do not contain same first.
+  @param productions: Map with productio's headers as string keys and
+  production's bodies as a list of string values
+  @return boolean. True if satisfies rule 1, false otherwhise
+*/
+bool rule1(map<string, list<string>> &productions){
+  for(auto itr = productions.begin(); itr != productions.end(); ++itr){
+    list<string> bodies = itr->second;
+
+    if(!iterate_bodies(bodies)){
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+  Verifies if grammar is LL(1).
+  @param productions: Map with productio's headers as string keys and
+  production's bodies as a list of string values
+  @follows: Map filled with most of the productions follows
+  @return boolean. True if is LL(1), false otherwhise
+*/
+bool isLL1(map<string, list<string>> &productions, map<string, set<string>> &follows){
+  if( rule1(productions) && !has_left_recursion(productions) ){
+    if( rule2(productions, follows) ){
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
   Prints productions map items in the form
   A -> ( A ) a
   B -> b ' '
@@ -706,6 +941,8 @@ int main(){
   // print_set(nonterminals, 1);
   // cout << endl;
   print_firsts_follows(nonterminals, firsts, follows);
+
+  isLL1(productions, follows) ? cout << "LL(1)? Yes" << endl : cout << "LL(1)? No" << endl;
 
   return 0;
 }
