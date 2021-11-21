@@ -112,9 +112,28 @@ B -> ' '
 D -> d
 D -> ' '
 
-S => FIRST = {b, d, a}, FOLLOW = {$} <--
+S => FIRST = {b, d, a}, FOLLOW = {$}
 A => FIRST = {b, d, ' '}, FOLLOW = {a}
 B => FIRST = {b, ' '}, FOLLOW = {d, a} <--
 D => FIRST = {d, ' '}, FOLLOW = {a}
 LL(1)? Yes
 -------------------------------------------
+
+10
+E -> T EPrime
+EPrime -> + T EPrime
+EPrime -> - T EPrime
+EPrime -> ' '
+T -> F TPrime
+TPrime -> * F TPrime
+TPrime -> / F TPrime
+TPrime -> ' '
+F -> ( E )
+F -> id
+
+E => FIRST = {(, id)}, FOLLOW = {$, )}
+EPrime => FIRST = {+, -, ' '}, FOLLOW = {$, )}
+T => FIRST = {(, id)}, FOLLOW = {+, -, $, )}
+TPrime => FIRST = {*, /, ' '}, FOLLOW = {+, -, $, )}
+F => FIRST = {(, id)}, FOLLOW = {+, -, *, /, $, )}
+LL(1)? Yes

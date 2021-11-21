@@ -267,6 +267,11 @@ set<string> get_derived_firsts(map<string, set<string>> &firsts, string key, str
 }
 
 /**
+  Gets set of firsts when epsilon at the starting nonterminals.
+  @param firsts: Empty map that will be filled with all productions
+  @param key : String production key
+  @param body: String production body
+  @return Set of found firsts
 */
 set<string> get_firsts_when_epsilon(map<string, set<string>> &firsts, string key, string body){
   bool flag = false;
@@ -397,6 +402,12 @@ void get_firsts(map<string, list<string>> &productions, map<string, set<string>>
     }
   }
 
+}
+
+/**
+*/
+void get_follows(){
+  
 }
 
 /**
