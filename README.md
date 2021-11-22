@@ -25,3 +25,4 @@ two -> b <br>
 ![screenshot.png](https://github.com/rcgc/LL1_table_generator/blob/master/screenshot.png)
 
 ## References
+[1]Aho, A., 2007. Compilers. 2nd ed. Boston: Pearson/Addison Wesley.
