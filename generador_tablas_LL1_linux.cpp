@@ -233,22 +233,49 @@ void print_set(set<string> &terminals, int flag){
 }
 
 /**
-  Gets all terminals at the beginning of every production body.
+  Gets nonterminal at the very beginning of production's body.
   @param productions: Map with production's headers as string keys
   and production's bodies as a list of string values
   @param body: String production body
   @return String first at the very beginning of body
 */
-string get_direct_firsts(map<string, list<string>> &productions, string body){
+string get_nonterminal_at_beggining(map<string, list<string>> &productions, string body){
   string sub_string, first;
   for(int i=0, j=0; i <= body.length(); i++){
     if(body[i]=='|' || body[i]=='\0'){
       sub_string = body.substr(j, i-j);
       j=i+1;
 
+      // If is nonterminal
+      if( productions.find(sub_string) != productions.end() ){
+        return sub_string;
+      }else{ // If is terminal or epsilon
+        break;
+      }
+    }
+  }
+  first = " ";
+  return first;
+}
+
+/**
+  Gets all terminals at the beginning of every production body.
+  @param productions: Map with production's headers as string keys
+  and production's bodies as a list of string values
+  @param body: String production body
+  @return String first at the very beginning of body
+*/
+string get_direct_first(map<string, list<string>> &productions, string body){
+  string sub_string, first;
+  for(int i=0, j=0; i <= body.length(); i++){
+    if(body[i]=='|' || body[i]=='\0'){
+      sub_string = body.substr(j, i-j);
+      j=i+1;
+
+      // If is terminal and not epsilon
       if( productions.find(sub_string) == productions.end() && !isEpsilon(sub_string)){
         return sub_string;
-      } else if(isEpsilon(body)){
+      } else if(isEpsilon(body)){ // If is epsilon
         return sub_string;
       } break;
     }
@@ -343,8 +370,8 @@ void get_firsts(map<string, list<string>> &productions, map<string, set<string>>
     while(!bodies.empty()){
       string body = bodies.front();
       body = replace_spaces_with_pipes(body);
-      if(get_direct_firsts(productions, body) != " "){
-        f = get_direct_firsts(productions, body);
+      if(get_direct_first(productions, body) != " "){
+        f = get_direct_first(productions, body);
         auto itr2 = firsts.find(key);
         if(itr2 == firsts.end()){
           set<string> aux_set;
@@ -911,6 +938,30 @@ void initialize_LL1_table(set<string> &terminals, set<string> &nonterminals, map
   }
 }
 
+/**
+  Fills LL1 Analysis Table cells when searching terminal symbols.
+  @param key: String terminal proudction's key
+  @param terminal: String terminal production's symbol
+  @param body: String production's body
+  @param LL1_table: Map with nonterminals symbols as key and terminal symbols
+  as the key of the second map and a string as the value.
+  Formatted in the following way:
+  header -> body
+*/
+void fill_LL1_table_when_terminal(string key, string terminal, string body, map<string, map<string, string>> &LL1_table){
+  auto itr1 = LL1_table.find(key);
+
+  if(itr1 != LL1_table.end()){
+    map<string, string> aux_map = itr1->second;
+
+    auto itr2 = aux_map.find(terminal);
+    if(itr2 != aux_map.end()){
+      itr2->second = key+" -> "+body;
+      itr1->second = aux_map;
+    }
+  }
+}
+
 /*
   Generate LL1 Analysis Table in order to check if provided strings
   will be accepted or not.
@@ -923,8 +974,81 @@ void initialize_LL1_table(set<string> &terminals, set<string> &nonterminals, map
   Formatted in the following way:
   header -> body
 **/
-void generate_LL1_table(map<string, list<string>> &productions, map<string, set<string>> &firsts, map<string, map<string, string>> &LL1_table){
+void generate_LL1_table(map<string, list<string>> &productions, map<string, set<string>> &firsts, map<string, set<string>> &follows, map<string, map<string, string>> &LL1_table){
+  for(auto itr = productions.begin(); itr != productions.end(); ++itr){
+    string key = itr->first;
+    list<string> bodies = itr->second;
+    while(!bodies.empty()){
+      string body = bodies.front();
+      string aux_body = body;
+      body = replace_spaces_with_pipes(body);
+      string f = get_direct_first(productions, body);
 
+      // If is terminal and not epsilon
+      if(f!=" " && !isEpsilon(f)){
+        fill_LL1_table_when_terminal(key, f, aux_body, LL1_table);
+      }else if(f==" " && !isEpsilon(f)){ // If is nonterminal and not epsilon
+        f = get_nonterminal_at_beggining(productions, body);
+        auto itr2 = firsts.find(f);
+
+        if(itr2 != firsts.end()){
+          set<string> aux_set = itr2->second;
+
+          set<string> :: iterator it;
+          // If not contains epsilon
+          if(!contains_epsilon(aux_set)){
+            auto itr3 = firsts.find(f);
+            set<string> aux_set2 = itr3->second;
+            for(it = aux_set2.begin(); it != aux_set2.end(); ++it){
+              fill_LL1_table_when_terminal(key, *it, aux_body, LL1_table);
+            }
+          }else{ // If contains epsilon
+            remove_epsilon(aux_set);
+            // Iterate firsts wihtout epsilon
+            auto itr4 = firsts.find(key);
+            set<string> aux_set3 = itr4->second;
+            for(it = aux_set3.begin(); it != aux_set3.end(); ++it){
+              fill_LL1_table_when_terminal(key, *it, aux_body, LL1_table);
+            }
+
+            auto itr5 = follows.find(key);
+
+            if(itr5 != follows.end()){
+              set<string> aux_set2 = itr5->second;
+
+              set<string> :: iterator it2;
+              // Iterate follows
+              for(it2 = aux_set2.begin(); it2 != aux_set2.end(); ++it2){
+                fill_LL1_table_when_terminal(key, *it2, aux_body, LL1_table);
+              }
+            }
+          }
+        }
+      }else if(isEpsilon(f)){ // If is epsilon
+        auto itr2 = follows.find(key);
+        set<string> aux_set = itr2->second;
+
+        set<string> :: iterator it;
+        for(it = aux_set.begin(); it != aux_set.end(); ++it){
+          fill_LL1_table_when_terminal(key, *it, "' '", LL1_table);
+        }
+      }
+      bodies.pop_front();
+    }
+  }
+}
+
+/**
+  Verifies if a given string is accepted by the LL1 table.
+  @param @param LL1_table: Map with nonterminals symbols as key and terminal symbols
+  as the key of the second map and a string as the value.
+  Formatted in the following way:
+  header -> body
+  @param str: String to be evaluated
+  @return boolean. True if accepted, false otherwise
+*/
+bool check_string(map<string, map<string, string>> &LL1_table, string str){
+  return true;
 }
 
 /**
@@ -944,22 +1068,9 @@ list<string> get_cells(map<string, map<string, string>> &LL1_table, string nonte
   aux_map = itr->second;
 
   for(auto itr2 = aux_map.begin(); itr2 != aux_map.end(); ++itr2){
-    aux_list.push_back(itr2->first);
+    aux_list.push_back(itr2->second);
   }
   return aux_list;
-}
-
-/**
-  Verifies if a given string is accepted by the LL1 table.
-  @param @param LL1_table: Map with nonterminals symbols as key and terminal symbols
-  as the key of the second map and a string as the value.
-  Formatted in the following way:
-  header -> body
-  @param str: String to be evaluated
-  @return boolean. True if accepted, false otherwise
-*/
-bool check_string(map<string, map<string, string>> &LL1_table, string str){
-  return true;
 }
 
 /**
@@ -1108,7 +1219,7 @@ int main(){
   if( isLL1(productions, follows) ){
     cout << "LL(1)? Yes" << endl;
     initialize_LL1_table(terminals, nonterminals, LL1_table);
-    generate_LL1_table(productions, firsts, LL1_table);
+    generate_LL1_table(productions, firsts, follows, LL1_table);
     generate_html(LL1_table, terminals, strings_input);
     cout << "Generated: report.html" << endl;
   }else{
