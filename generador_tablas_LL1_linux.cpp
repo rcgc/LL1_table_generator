@@ -69,6 +69,22 @@ string get_header(string production){
 }
 
 /**
+  Gets and returns production's body only.
+  @param production: String formatted in the way
+  header -> body
+  @return production body
+*/
+string get_body(string production){
+  string body;
+  int limit;
+
+  limit = production.find('>');
+  body = production.substr(limit+2, production.length()-1);
+
+  return body;
+}
+
+/**
   Separates production's header from production's body, uses
   production's header as productions map key and production's body as its map
   value. If production's header already exists as a map key, production's
@@ -160,7 +176,7 @@ void remove_epsilon(set<string> &set1){
   @param str: String searched into Set
   @return boolean. True if str is in set, false otherwise
 */
-bool contains_first(set<string> &set1, string str){
+bool set_contains_string(set<string> &set1, string str){
   set<string> :: iterator it;
 
   for(it = set1.begin(); it != set1.end(); ++it){
@@ -753,7 +769,7 @@ bool is_first_into_follows(string key, list<string> &bodies, map<string, set<str
         if(body[i]=='|' || body[i]=='\0'){
           string sub_string = body.substr(j, i-j);
           j=i+1;
-          if( contains_first(aux, sub_string) ){
+          if( set_contains_string(aux, sub_string) ){
             return true;
           }
         }
@@ -1039,15 +1055,126 @@ void generate_LL1_table(map<string, list<string>> &productions, map<string, set<
 }
 
 /**
+  Converts a string into a list of strings, where tokens separated
+  by spaces will be the items. This list won't be inverted
+  Token1 Token2 Token3 TokenN
+  @param str: String to be converted
+  @return List of Strings
+*/
+list<string> string_to_list(string str){
+  list<string> aux_list;
+  str = replace_spaces_with_pipes(str);
+
+  for(int i=0, j=0; i<=str.length(); i++){
+    if(str[i]=='|' || str[i]=='\0'){
+      string sub_string = str.substr(j, i-j);
+      aux_list.push_back(sub_string);
+      j=i+1;
+    }
+  }
+  return aux_list;
+}
+
+/**
+  Merges two lists, inserts body_list inverted at the beggining of stack.
+  @param stack: List of strings which contains production symbols
+  @param body_list: List of strings which contains input string tokens
+  @return List merged
+*/
+list<string> merge_list_to_stack(list<string> stack, list<string>body_list){
+  // body_list will substitute this first item
+  stack.pop_front();
+  while(!body_list.empty()){
+    stack.push_front(body_list.back());
+    body_list.pop_back();
+  }
+  return stack;
+}
+
+/**
+  Prints list as a continuous string.
+  @param l: String to be printed
+*/
+void print_list(list<string> l){
+  while(!l.empty()){
+    cout << l.front();
+    l.pop_front();
+  }
+  cout << endl;
+}
+
+/**
   Verifies if a given string is accepted by the LL1 table.
   @param @param LL1_table: Map with nonterminals symbols as key and terminal symbols
   as the key of the second map and a string as the value.
   Formatted in the following way:
   header -> body
   @param str: String to be evaluated
+  @param initial_header: String header of initial_production
   @return boolean. True if accepted, false otherwise
 */
-bool check_string(map<string, map<string, string>> &LL1_table, string str){
+bool check_string(map<string, map<string, string>> &LL1_table, string str, string initial_header){
+  list<string> stack, input;
+  string body;
+
+  input=string_to_list(str);
+  input.push_back("$");
+  stack.push_front("$");
+  stack.push_front(initial_header);
+
+  while(!input.empty()){
+    // If nonterminal at stack front
+    if(LL1_table.find(stack.front()) != LL1_table.end()){
+      auto itr1 = LL1_table.find(stack.front());
+
+      // If nonterminal does not belong to grammar
+      if(itr1 == LL1_table.end()){
+        return false;
+      }
+
+      map<string, string> aux_map = itr1->second;
+      auto itr2 = aux_map.find(input.front());
+
+      // If terminal does not belong to grammar
+      if(itr2 == aux_map.end()){
+        return false;
+      }
+
+      body = itr2->second;
+      body = get_body(body);
+    }
+
+    // Success checking condition
+    if( stack.front()=="$" && input.front()=="$" ){
+      return true;
+    }
+    else if(isEpsilon(body)){ //If epsilon pop and continue
+      stack.pop_front();
+      continue;
+    }
+
+    // If nonterminal at stack front
+    if(LL1_table.find(stack.front()) != LL1_table.end() && body!=" "){
+      list<string> body_list = string_to_list(body);
+
+      // Puts inverted body_list into stack front
+      stack = merge_list_to_stack(stack, body_list);
+    }
+
+    // print_list(stack);
+    // print_list(input);
+    // cout << "sf:" << stack.front() << " if:" << input.front() << endl;
+    if(LL1_table.find(stack.front()) != LL1_table.end()){
+      continue;
+    }
+    else if(stack.front() == input.front()){ // If both fronts are equal
+        stack.pop_front();
+        input.pop_front();
+        continue;
+    }else{ // If fronts are not equal
+      return false;
+    }
+  }
   return true;
 }
 
@@ -1082,8 +1209,9 @@ list<string> get_cells(map<string, map<string, string>> &LL1_table, string nonte
   header -> body
   @param terminals: Set of Strings with all terminals symbols
   @param strings_input: list of Strings to be evaluated
+  @param initial_header: String header of initial_production
 */
-void generate_html(map<string, map<string, string>> &LL1_table, set<string> &terminals, list<string> &strings_input){
+void generate_html(map<string, map<string, string>> &LL1_table, set<string> &terminals, list<string> &strings_input, string initial_header){
   set<string> aux_set = terminals;
   aux_set.insert("$");
   int i = 1;
@@ -1132,7 +1260,7 @@ void generate_html(map<string, map<string, string>> &LL1_table, set<string> &ter
       while(!strings_input.empty()){
         myfile << "<p>";
         myfile << "<b>Input #" << i << ": </b>";
-        check_string(LL1_table, strings_input.front()) ? myfile << "Yes" : myfile << "No";
+        check_string(LL1_table, strings_input.front(), initial_header) ? myfile << "Yes" : myfile << "No";
         myfile << "</p>";
         i++;
         strings_input.pop_front();
@@ -1220,7 +1348,7 @@ int main(){
     cout << "LL(1)? Yes" << endl;
     initialize_LL1_table(terminals, nonterminals, LL1_table);
     generate_LL1_table(productions, firsts, follows, LL1_table);
-    generate_html(LL1_table, terminals, strings_input);
+    generate_html(LL1_table, terminals, strings_input, initial_header);
     cout << "Generated: report.html" << endl;
   }else{
     cout << "LL(1)? No" << endl;

@@ -27,7 +27,7 @@ LL(1)? No
 
 ------------------------------------------
 
-8 0
+8 3
 E -> T EPrime
 EPrime -> + T EPrime
 EPrime -> ' '
@@ -36,6 +36,9 @@ TPrime -> * F TPrime
 TPrime -> ' '
 F -> ( E )
 F -> id
+id + id * id
++ id
+id - id
 
 E => FIRST = {id, (}, FOLLOW = {$, )}
 EPrime => FIRST = {+, ' '}, FOLLOW = {$, )}
