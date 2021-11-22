@@ -8,8 +8,8 @@ Execute linux commands in the following order:
 - `./a.out` : runs the compiled file
 - paste input
 
-### Example
-#### Input
+## Example
+### Input
 5 4 <br>
 goal -> A <br>
 A -> ( A ) <br>
@@ -21,5 +21,5 @@ two -> b <br>
 ( ( ( ( ( b ) ) ) ) ) <br>
 ( ( ( ( ( a b ) ) ) ) ) <br>
 
-#### Result
+### Result
 ![screenshot.png](https://github.com/rcgc/LL1_table_generator/blob/master/screenshot.png)
