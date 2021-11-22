@@ -6,7 +6,7 @@
 Execute linux commands in the following order:
 - `g++ generador_tablas_LL1_linux.cpp` : compiles .cpp file
 - `./a.out` : runs the compiled file
-- paste input
+- paste input and hit enter
 
 ## Example
 ### Input
