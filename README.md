@@ -23,3 +23,5 @@ two -> b <br>
 
 ### Result
 ![screenshot.png](https://github.com/rcgc/LL1_table_generator/blob/master/screenshot.png)
+
+## References
