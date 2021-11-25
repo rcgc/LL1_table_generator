@@ -177,9 +177,10 @@ void remove_epsilon(set<string> &set1){
   @return boolean. True if str is in set, false otherwise
 */
 bool set_contains_string(set<string> &set1, string str){
+  set<string> aux_set = set1;
   set<string> :: iterator it;
 
-  for(it = set1.begin(); it != set1.end(); ++it){
+  for(it = aux_set.begin(); it != aux_set.end(); ++it){
     if(*it==str){
       return true;
     }
@@ -752,31 +753,34 @@ bool has_left_recursion(map<string, list<string>> &productions){
 /**
   Checks if first is into key follows.
   @param key: String which productions will be evaluated
+  @param productions: Map with productio's headers as string keys and
+  production's bodies as a list of string values
   @param bodies: List of productions as String to be evaluated
   @follows: Map filled with most of the productions follows
   @return boolean. True if first is into a follow set
 */
-bool is_first_into_follows(string key, list<string> &bodies, map<string, set<string>> &follows){
+bool is_first_into_follows(string key, map<string, list<string>> &productions, list<string> &bodies, map<string, set<string>> &follows){
   auto itr = follows.find(key);
-  set<string> aux = itr->second;
+  list<string> aux_bodies = bodies;
 
-  while(!bodies.empty()){
-    string body = bodies.front();
+  if(itr != follows.end()){
+    set<string> aux_follows = itr->second;
 
-    // If body does no contain epsilon
-    if(body.find("' '") == string::npos){
-      for(int i=0, j=0; i<=body.length(); i++){
-        if(body[i]=='|' || body[i]=='\0'){
-          string sub_string = body.substr(j, i-j);
-          j=i+1;
-          if( set_contains_string(aux, sub_string) ){
-            return true;
-          }
+    while(!aux_bodies.empty()){
+      string body = aux_bodies.front();
+      body = replace_spaces_with_pipes(body);
+
+      // If body does no contain epsilon
+      if( !isEpsilon(body) ){
+        string f = get_direct_first(productions, body);
+        if(set_contains_string(aux_follows, f)){
+          return true;
         }
       }
+      aux_bodies.pop_front();
     }
-    bodies.pop_front();
   }
+
   return false;
 }
 
@@ -790,13 +794,16 @@ bool is_first_into_follows(string key, list<string> &bodies, map<string, set<str
 */
 bool rule3(string key, map<string, list<string>> &productions, map<string, set<string>> &follows){
   auto itr = productions.find(key);
-  list<string> bodies = itr->second;
 
-  while(!bodies.empty()){
-    if(is_first_into_follows(key, bodies, follows)){
-      return false;
+  if(itr != productions.end()){
+    list<string> bodies = itr->second;
+
+    while(!bodies.empty()){
+      if(is_first_into_follows(key, productions, bodies, follows)){
+        return false;
+      }
+      bodies.pop_front();
     }
-    bodies.pop_front();
   }
   return true;
 }
@@ -816,17 +823,11 @@ int count_epsilon(list<string> &bodies){
 
   while(!bodies.empty()){
     string body = bodies.front();
-    body = replace_spaces_with_pipes(body);
 
-    for(int i=0, j=0; i<body.length(); i++){
-      if(body[i]=='|' || body[i]=='\0'){
-        string sub_string = body.substr(j, i-j);
-        j=i+1;
-        if( isEpsilon(sub_string)){
-          counter++;
-        }
-      }
+    if( isEpsilon(body)){
+      counter++;
     }
+
     bodies.pop_front();
   }
   return counter;

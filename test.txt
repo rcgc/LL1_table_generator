@@ -113,15 +113,17 @@ Input #4: No
 LL(1)? Yes
 --------------------------------------------
 
-3 2
+3 3
 S -> X X
 X -> x X
 X -> y
 x y y x
 y y x
+y y
 
-INput #1: No
-INput #2: No
+Input #1: No
+Input #2: No
+Input #3: Yes
 LL(1)? Yes
 --------------------------------------------
 
