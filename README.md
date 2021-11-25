@@ -1,4 +1,4 @@
-# LL1_table_generator
+# LL(1) table generator
 ## Abstract
 Predictive parsers, that is, recursive-descent parsers needing no backtracking, can be constructed for a class of grammars called LL(1). The first "L" in LL(1) stands for scanning the input from left to rigth, the second "L" for producing a leftmost derivation, and the "1" for using one input symbol of lookahead at each step to make parsing action decisions[1].
 
