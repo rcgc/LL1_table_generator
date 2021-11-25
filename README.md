@@ -9,7 +9,7 @@ Execute linux commands in the following order:
 - `g++ generador_tablas_LL1_linux.cpp` : compiles .cpp file
 - `./a.out` : runs the compiled file
 - paste input and hit enter
-- If the given grammar is LL(1) report.html will be generated, otherwise console will display a warning message
+- If the given grammar is LL(1) report.html will be generated, otherwise console will display a warning message and no html will be generated
 
 ## LL(1) Table Generator
 ### Input
