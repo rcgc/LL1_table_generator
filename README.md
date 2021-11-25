@@ -66,7 +66,7 @@ two -> b <br>
 
 ### Result
 ![screenshot.png](https://github.com/rcgc/LL1_table_generator/blob/master/screenshot_terminals_nonterminals.png)
-<p><b>Image 4. </b>Input grammar Terminals and Nonterminals</p>
+<p><b>Image 4. </b>Input grammar Terminals and Nonterminals</p><br>
 
 ## References
 [1]Aho, A., 2007. Compilers. 2nd ed. Boston: Pearson/Addison Wesley.
