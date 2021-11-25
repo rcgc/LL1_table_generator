@@ -11,7 +11,7 @@ Execute linux commands in the following order:
 - paste input and hit enter
 - If the given grammar is LL(1) report.html will be generated
 
-## Example
+## LL(1) Table Generator
 ### Input
 5 4 <br>
 goal -> A <br>
@@ -26,7 +26,47 @@ two -> b <br>
 
 ### Result
 ![screenshot.png](https://github.com/rcgc/LL1_table_generator/blob/master/screenshot.png)
-<p><b>Image 1. </b>Given grammar is LL(1)</p><br>
+<p><b>Image 1. </b>Input grammar is LL(1)</p><br>
+
+![screenshot.png](https://github.com/rcgc/LL1_table_generator/blob/master/screenshot_NoLL1.png)
+<p><b>Image 2. </b>Input grammar is no LL(1)</p><br>
+
+
+## Terminals and Nonterminals Generator
+In order to get the exact output uncomment lines 1345 and 1346 from generador_tablas_LL1_linux.cpp.
+### Input
+5 4 <br>
+goal -> A <br>
+A -> ( A ) <br>
+A -> two <br>
+two -> a <br>
+two -> b <br>
+( ( a ) ) <br>
+( a ) ) <br>
+( ( ( ( ( b ) ) ) ) ) <br>
+( ( ( ( ( a b ) ) ) ) ) <br>
+
+### Result
+![screenshot.png](https://github.com/rcgc/LL1_table_generator/blob/master/screenshot_firsts_follows.png)
+<p><b>Image 3. </b>Input grammar Firsts and Follows</p><br>
+
+## Firsts and Follows Generator
+In order to get the exact output uncomment lines 1342, 1343 and 1344 from generador_tablas_LL1_linux.cpp.
+### Input
+5 4 <br>
+goal -> A <br>
+A -> ( A ) <br>
+A -> two <br>
+two -> a <br>
+two -> b <br>
+( ( a ) ) <br>
+( a ) ) <br>
+( ( ( ( ( b ) ) ) ) ) <br>
+( ( ( ( ( a b ) ) ) ) ) <br>
+
+### Result
+![screenshot.png](https://github.com/rcgc/LL1_table_generator/blob/master/screenshot_terminals_nonterminals.png)
+<p><b>Image 4. </b>Input grammar Terminals and Nonterminals</p><br>
 
 ## References
 [1]Aho, A., 2007. Compilers. 2nd ed. Boston: Pearson/Addison Wesley.
