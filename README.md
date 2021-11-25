@@ -10,6 +10,7 @@ Execute linux commands in the following order:
 - `./a.out` : runs the compiled file
 - paste input and hit enter
 - If the given grammar is LL(1) report.html will be generated, otherwise not and console will display a warning message
+- Open report.html (if generated) in preferred browser
 
 ## LL(1) Table Generator
 ### Input
