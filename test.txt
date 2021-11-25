@@ -91,7 +91,7 @@ APrime -> ' '
 S => FIRST = {b, c, a}, FOLLOW = {$}
 A => FIRST = {b, c, a, ' '}, FOLLOW = {a}
 APrime => FIRST = {c, a, ' '}, FOLLOW = {a}
-LL(1)? Yes
+LL(1)? No
 --------------------------------------------
 
 5 4
