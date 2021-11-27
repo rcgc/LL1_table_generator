@@ -34,7 +34,7 @@ two -> b <br>
 <p><b>Image 2. </b>Input grammar is no LL(1)</p><br>
 
 
-## Terminals and Nonterminals Generator
+## Firsts and Follows Generator
 In order to get the exact output uncomment lines 1345 and 1346 from generador_tablas_LL1_linux.cpp.
 ### Input
 5 4 <br>
@@ -52,7 +52,7 @@ two -> b <br>
 ![screenshot.png](https://github.com/rcgc/LL1_table_generator/blob/master/screenshot_firsts_follows.png)
 <p><b>Image 3. </b>Input grammar Firsts and Follows</p><br>
 
-## Firsts and Follows Generator
+## Terminals and Nonterminals Generator
 In order to get the exact output uncomment lines 1342, 1343 and 1344 from generador_tablas_LL1_linux.cpp.
 ### Input
 5 4 <br>
