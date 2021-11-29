@@ -161,3 +161,22 @@ TPrime => FIRST = {*, /, ' '}, FOLLOW = {+, -, $, )}
 F => FIRST = {(, id)}, FOLLOW = {+, -, *, /, $, )}
 LL(1)? Yes
 -------------------------------------------
+
+12 1
+C -> P F class id X Y
+P -> public
+P -> ' '
+F -> final
+F -> ' '
+X -> extends id
+X -> ' '
+Y -> implements I
+Y -> ' '
+I -> id J
+J -> , I
+J -> ' '
+public class id implements id , id
+
+Input #1: Yes
+LL(1)? Yes
+-------------------------------------------

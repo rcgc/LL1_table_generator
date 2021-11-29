@@ -1098,7 +1098,7 @@ list<string> merge_list_to_stack(list<string> stack, list<string>body_list){
 */
 void print_list(list<string> l){
   while(!l.empty()){
-    cout << l.front();
+    cout << l.front() << " ";
     l.pop_front();
   }
   cout << endl;
@@ -1144,12 +1144,15 @@ bool check_string(map<string, map<string, string>> &LL1_table, string str, strin
       body = itr2->second;
       body = get_body(body);
     }
+    // print_list(stack);
+    // print_list(input);
+    // cout << "sf:" << stack.front() << " if:" << input.front() << endl;
 
     // Success checking condition
     if( stack.front()=="$" && input.front()=="$" ){
       return true;
     }
-    else if(isEpsilon(body)){ //If epsilon pop and continue
+    else if(isEpsilon(body) && LL1_table.find(stack.front()) != LL1_table.end()){ //If epsilon pop and continue
       stack.pop_front();
       continue;
     }
