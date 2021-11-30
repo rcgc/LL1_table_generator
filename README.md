@@ -35,7 +35,7 @@ two -> b <br>
 
 
 ## Firsts and Follows Generator
-In order to get the exact output uncomment lines 1345 and 1346 from generador_tablas_LL1_linux.cpp.
+In order to get the exact output uncomment lines 1348 and 1349 from generador_tablas_LL1_linux.cpp.
 ### Input
 5 4 <br>
 goal -> A <br>
@@ -53,7 +53,7 @@ two -> b <br>
 <p><b>Image 3. </b>Input grammar Firsts and Follows</p><br>
 
 ## Terminals and Nonterminals Generator
-In order to get the exact output uncomment lines 1342, 1343 and 1344 from generador_tablas_LL1_linux.cpp.
+In order to get the exact output uncomment lines 1345, 1346 and 1347 from generador_tablas_LL1_linux.cpp.
 ### Input
 5 4 <br>
 goal -> A <br>
